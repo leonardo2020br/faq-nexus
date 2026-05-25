@@ -1,0 +1,6 @@
+# Cloudflare Pages — Redirects
+# Mantem URLs antigas funcionando caso alguem tenha bookmark do .html legado
+
+/faq.html         /faq/                301
+/noticias.html    /noticias/           301
+/videos.html      /videos/             301

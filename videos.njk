@@ -1,0 +1,63 @@
+---
+layout: base.njk
+title: "Vídeos e Tutoriais"
+description: "Aprenda na prática com nossos vídeos passo a passo."
+permalink: /videos/index.html
+---
+
+<section class="page-header">
+  <div class="container">
+    <h1>Vídeos e Tutoriais</h1>
+    <p>Aprenda na prática com nossos vídeos passo a passo</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">Início</a><span class="sep">/</span><span>Vídeos</span>
+  </div>
+
+  <div style="margin:32px 0">
+    <input type="text" data-search-input placeholder="🔍 Buscar vídeo por título ou tema..."
+      style="width:100%;max-width:480px;padding:14px 20px;border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:1rem;background:#fff" />
+  </div>
+
+  <div class="faq-categories" style="margin-bottom:40px">
+    <button data-faq-cat="todos" class="active">Todos</button>
+    <button data-faq-cat="cadastros">Cadastros</button>
+    <button data-faq-cat="vendas">Vendas</button>
+    <button data-faq-cat="fiscal">Fiscal</button>
+    <button data-faq-cat="financeiro">Financeiro</button>
+    <button data-faq-cat="estoque">Estoque</button>
+    <button data-faq-cat="bi">BI &amp; Relatórios</button>
+  </div>
+
+  <div class="grid grid-3" style="padding-bottom:64px">
+    {% for v in collections.videos %}
+      {% set ytid = v.data.url | youtubeId %}
+      <div class="video-card faq-item" data-cat="{{ v.data.category }}"
+           data-search="{{ v.data.title | lower }} {{ v.data.category }}">
+        <a href="{{ v.data.url }}" target="_blank" style="display:block">
+          <div class="video-thumb">
+            {% if ytid %}
+              <img src="https://img.youtube.com/vi/{{ ytid }}/hqdefault.jpg" alt="{{ v.data.title }}">
+              <div class="play-icon">▶</div>
+            {% else %}
+              <div class="play-icon">▶</div>
+            {% endif %}
+          </div>
+        </a>
+        <div class="video-info">
+          <h3>{{ v.data.title }}</h3>
+          <div class="video-meta">{% if v.data.duration %}⏱️ {{ v.data.duration }}{% endif %}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="text-center" style="background:#fff;padding:48px;border-radius:var(--radius-md);border:1px solid var(--color-border);margin-bottom:64px">
+    <h2 class="section-title">Quer aprender ainda mais?</h2>
+    <p class="section-subtitle">Inscreva-se no nosso canal e receba conteúdos exclusivos</p>
+    <a href="#" target="_blank" class="btn btn-primary">📺 Acessar canal do YouTube</a>
+  </div>
+</div>

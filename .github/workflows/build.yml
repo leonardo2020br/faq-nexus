@@ -1,0 +1,47 @@
+# =============================================================================
+# Workflow: Build de validacao do site
+# -----------------------------------------------------------------------------
+# Roda a cada push e cada Pull Request, instala dependencias e gera o site.
+# Funciona como "guarda-redes": se algum .md ou template tiver erro, vai falhar
+# AQUI antes do Cloudflare Pages publicar conteudo quebrado em producao.
+#
+# Cloudflare Pages tem seu proprio build automatico - este workflow nao publica
+# nada, so valida.
+# =============================================================================
+
+name: Build de validacao
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout do codigo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+
+      - name: Build do site (Eleventy)
+        run: npm run build
+
+      - name: Validar saida
+        run: |
+          if [ ! -f "_site/index.html" ]; then
+            echo "ERRO: _site/index.html nao foi gerado"
+            exit 1
+          fi
+          echo "Build OK - $(find _site -name '*.html' | wc -l) paginas geradas"

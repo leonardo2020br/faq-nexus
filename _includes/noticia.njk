@@ -1,0 +1,33 @@
+---
+layout: base.njk
+---
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">Início</a><span class="sep">/</span>
+    <a href="/noticias/">Notícias</a><span class="sep">/</span>
+    <span>{{ title }}</span>
+  </div>
+
+  <article style="max-width:820px;margin:32px auto 64px">
+    <span class="news-tag">{{ tag }}</span>
+    <h1 style="font-size:2.4rem;margin:16px 0">{{ title }}</h1>
+    <div class="doc-meta">
+      <span>📅 {{ date | dataPtBr }}</span>
+      <span>📑 Categoria: {{ tag }}</span>
+    </div>
+
+    <div style="background:linear-gradient(135deg,var(--color-primary) 0%,var(--color-accent) 100%);height:280px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:#fff;font-size:5rem;margin-bottom:32px">
+      {% if thumb and (thumb | length) > 4 %}<img src="{{ thumb }}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-md)">{% else %}{{ thumb or "🚀" }}{% endif %}
+    </div>
+
+    <div class="doc-content" style="padding:0;border:none;background:transparent;box-shadow:none">
+      {% if summary %}<p style="font-size:1.15rem;color:var(--color-text-muted)">{{ summary }}</p>{% endif %}
+      {{ content | safe }}
+    </div>
+
+    <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--color-border);text-align:center">
+      <a href="/noticias/" class="btn btn-outline">← Voltar para Notícias</a>
+    </div>
+  </article>
+</div>

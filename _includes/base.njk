@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title or site.name }}{% if title %} | {{ site.short }}{% endif %}</title>
+  {% if description %}<meta name="description" content="{{ description }}">{% endif %}
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="icon" type="image/png" href="https://nexuserp.com.br/img/cropped-favicon-1-270x270.png">
+</head>
+<body>
+
+  <!-- ================== HEADER ================== -->
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand">
+        <img class="brand-logo-img" src="{{ site.logo }}" alt="{{ site.name }}">
+        <span class="brand-sub">{{ site.short }}</span>
+      </a>
+      <nav class="nav-main">
+        <a href="/"          {% if page.url == "/" %}class="active"{% endif %}>Início</a>
+        <a href="/modulos/"  {% if page.url.startsWith("/modulos") %}class="active"{% endif %}>Módulos</a>
+        <a href="/faq/"      {% if page.url.startsWith("/faq") %}class="active"{% endif %}>FAQ</a>
+        <a href="/noticias/" {% if page.url.startsWith("/noticias") %}class="active"{% endif %}>Notícias</a>
+        <a href="/videos/"   {% if page.url.startsWith("/videos") %}class="active"{% endif %}>Vídeos</a>
+        <a href="https://api.whatsapp.com/send?phone={{ contato.whatsapp_number }}" target="_blank" class="btn btn-secondary" style="padding:8px 16px;">Suporte</a>
+      </nav>
+      <button class="mobile-toggle" aria-label="Abrir menu">☰</button>
+    </div>
+  </header>
+
+  <!-- ================== CONTEÚDO ================== -->
+  {{ content | safe }}
+
+  <!-- ================== FOOTER ================== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-about">
+          <div class="brand" style="margin-bottom:16px">
+            <img class="brand-logo-img" src="{{ site.logo }}" alt="{{ site.name }}">
+            <span class="brand-sub">{{ site.short }}</span>
+          </div>
+          <p>15 anos de experiência em sistemas de gestão ERP. Solução completa, flexível e personalizável para o seu negócio.</p>
+        </div>
+        <div>
+          <h5>Conteúdo</h5>
+          <ul>
+            <li><a href="/modulos/">Módulos</a></li>
+            <li><a href="/faq/">FAQ</a></li>
+            <li><a href="/noticias/">Notícias</a></li>
+            <li><a href="/videos/">Vídeos</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Soluções Nexus</h5>
+          <ul>
+            <li><a href="https://nexuserp.com.br/sistema-erp-distribuidoras" target="_blank">Distribuidoras</a></li>
+            <li><a href="https://nexuserp.com.br/sistema-erp-varejo" target="_blank">Varejo</a></li>
+            <li><a href="https://nexuserp.com.br/sistema-erp-e-commerce" target="_blank">E-commerce</a></li>
+            <li><a href="https://nexuserp.com.br/" target="_blank">Site Oficial</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Contato</h5>
+          <ul>
+            <li>📞 {{ contato.telefone }}</li>
+            <li>✉️ {{ contato.email }}</li>
+            <li>📍 {{ contato.endereco | replace("\n", "<br>") | safe }}</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        © 2026 Nexus ERP — Todos os direitos reservados
+        | <a href="https://nexuserp.com.br/politica-de-privacidade" target="_blank" style="color:#94a3b8">Política de Privacidade</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "central-de-ajuda-nexus",
+  "version": "1.0.0",
+  "description": "Base de conhecimento web do Nexus ERP - gerada com Eleventy + Decap CMS.",
+  "private": true,
+  "scripts": {
+    "dev": "eleventy --serve --port=8080",
+    "build": "eleventy"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.0"
+  },
+  "overrides": {
+    "please-upgrade-node": "3.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "author": "Nexus ERP"
+}

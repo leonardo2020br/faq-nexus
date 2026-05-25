@@ -1,0 +1,52 @@
+---
+layout: base.njk
+title: "FAQ — Perguntas Frequentes"
+description: "Encontre respostas rápidas para as dúvidas mais comuns sobre o Nexus ERP."
+permalink: /faq/index.html
+---
+
+<section class="page-header">
+  <div class="container">
+    <h1>Perguntas Frequentes</h1>
+    <p>Encontre respostas rápidas para as dúvidas mais comuns sobre o Nexus ERP</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">Início</a><span class="sep">/</span><span>FAQ</span>
+  </div>
+
+  <div style="margin:32px 0">
+    <input type="text" data-search-input data-faq-search
+      placeholder="🔍 Pesquisar nas perguntas frequentes..."
+      style="width:100%;padding:16px 22px;border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:1rem;background:#fff;box-shadow:var(--shadow-sm)" />
+  </div>
+
+  <div class="faq-categories">
+    <button data-faq-cat="todos" class="active">Todas</button>
+    <button data-faq-cat="instalacao">Instalação &amp; Acesso</button>
+    <button data-faq-cat="cadastros">Cadastros</button>
+    <button data-faq-cat="vendas">Vendas</button>
+    <button data-faq-cat="fiscal">Fiscal/NF-e</button>
+    <button data-faq-cat="financeiro">Financeiro</button>
+    <button data-faq-cat="estoque">Estoque</button>
+    <button data-faq-cat="suporte">Suporte</button>
+  </div>
+
+  <div class="faq-list" style="padding-bottom:64px">
+    {% set sorted = collections.faqs | sort(false, false, "data.order") %}
+    {% for item in sorted %}
+      <div class="faq-item" data-cat="{{ item.data.category }}" data-search="{{ item.data.question | lower }} {{ item.data.search_keywords or '' }}">
+        <button class="faq-question">{{ item.data.question }}</button>
+        <div class="faq-answer">{{ item.templateContent | safe }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="text-center" style="background:#fff;padding:48px;border-radius:var(--radius-md);border:1px solid var(--color-border);margin-bottom:64px">
+    <h2 class="section-title">Não encontrou sua resposta?</h2>
+    <p class="section-subtitle">Nossa equipe de suporte está pronta para te ajudar</p>
+    <a href="https://api.whatsapp.com/send?phone={{ contato.whatsapp_number }}" target="_blank" class="btn btn-primary">Falar com o Suporte</a>
+  </div>
+</div>

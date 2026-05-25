@@ -1,0 +1,53 @@
+---
+layout: base.njk
+title: "Notícias e Atualizações"
+description: "Acompanhe novidades, releases e comunicados importantes do Nexus ERP."
+permalink: /noticias/index.html
+---
+
+<section class="page-header">
+  <div class="container">
+    <h1>Notícias e Atualizações</h1>
+    <p>Acompanhe novidades, releases e comunicados importantes do Nexus ERP</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">Início</a><span class="sep">/</span><span>Notícias</span>
+  </div>
+
+  <div style="margin:32px 0">
+    <input type="text" data-search-input placeholder="🔍 Buscar notícias..."
+      style="width:100%;max-width:480px;padding:14px 20px;border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:1rem;background:#fff" />
+  </div>
+
+  <div class="faq-categories" style="margin-bottom:40px">
+    <button data-faq-cat="todos" class="active">Todas</button>
+    <button data-faq-cat="release">Releases</button>
+    <button data-faq-cat="tutorial">Tutoriais</button>
+    <button data-faq-cat="aviso">Avisos</button>
+    <button data-faq-cat="evento">Eventos</button>
+  </div>
+
+  <div class="grid grid-3" style="padding-bottom:64px">
+    {% for n in collections.noticias %}
+      <a href="{{ n.url }}" class="news-card faq-item" data-cat="{{ n.data.tag }}"
+         data-search="{{ n.data.title | lower }} {{ n.data.summary | lower }}">
+        <div class="news-thumb">
+          {% if n.data.thumb and (n.data.thumb | length) > 4 %}
+            <img src="{{ n.data.thumb }}" alt="" style="width:100%;height:100%;object-fit:cover">
+          {% else %}
+            {{ n.data.thumb or "🚀" }}
+          {% endif %}
+        </div>
+        <div class="news-body">
+          <span class="news-tag">{{ n.data.tag }}</span>
+          <h3>{{ n.data.title }}</h3>
+          <p>{{ n.data.summary }}</p>
+          <span class="news-date">{{ n.data.date | dataPtBr }}</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</div>

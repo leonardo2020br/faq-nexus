@@ -1,0 +1,164 @@
+# =============================================================================
+# DECAP CMS — Configuração do painel administrativo
+# =============================================================================
+# Documentação: https://decapcms.org/docs/configuration-options/
+#
+# IMPORTANTE: ajuste o campo "repo" para o seu repositório GitHub real,
+# no formato "usuario/nome-do-repo".
+# =============================================================================
+
+backend:
+  name: github
+  repo: leonardo2020br/faq-nexus
+  branch: main
+  base_url: https://decap-oauth.your-worker.workers.dev   # opcional, ver guia
+  # Se preferir auth via Netlify Identity, troque "name: github" por "name: git-gateway"
+
+publish_mode: editorial_workflow   # cria PRs para revisão antes de publicar
+media_folder: "assets/img/uploads"
+public_folder: "/assets/img/uploads"
+site_url: https://ajuda.nexuserp.com.br
+display_url: https://ajuda.nexuserp.com.br
+logo_url: https://nexuserp.com.br/img/logo-nexus.png
+locale: 'pt'
+
+# =============================================================================
+# COLEÇÕES (tipos de conteúdo que a equipe pode criar/editar)
+# =============================================================================
+collections:
+
+  # ---------------------------------------------------------------------------
+  # FAQ — Perguntas frequentes
+  # ---------------------------------------------------------------------------
+  - name: "faq"
+    label: "❓ FAQ — Perguntas Frequentes"
+    label_singular: "Pergunta"
+    description: "Perguntas e respostas curtas, exibidas em accordion."
+    folder: "_content/faqs"
+    create: true
+    slug: "{{slug}}"
+    summary: "{{question}}  ·  Categoria: {{category}}"
+    sortable_fields: ['category', 'question']
+    view_groups:
+      - label: Por categoria
+        field: category
+    fields:
+      - { name: "question",    label: "Pergunta",         widget: "string", required: true }
+      - { name: "category",    label: "Categoria",        widget: "select", required: true,
+          options:
+            - { label: "Instalação & Acesso", value: "instalacao" }
+            - { label: "Cadastros",           value: "cadastros" }
+            - { label: "Vendas",              value: "vendas" }
+            - { label: "Fiscal / NF-e",       value: "fiscal" }
+            - { label: "Financeiro",          value: "financeiro" }
+            - { label: "Estoque",             value: "estoque" }
+            - { label: "Suporte",             value: "suporte" } }
+      - { name: "search_keywords", label: "Palavras-chave para busca", widget: "string", required: false,
+          hint: "Termos extras separados por espaço (ajuda na busca interna)." }
+      - { name: "order",       label: "Ordem de exibição (menor aparece primeiro)", widget: "number", default: 100, required: false }
+      - { name: "body",        label: "Resposta",         widget: "markdown", required: true }
+
+  # ---------------------------------------------------------------------------
+  # NOTÍCIAS — Releases, avisos, tutoriais curtos
+  # ---------------------------------------------------------------------------
+  - name: "noticia"
+    label: "📰 Notícias & Atualizações"
+    label_singular: "Notícia"
+    folder: "_content/noticias"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    summary: "{{date | date('DD/MM/YYYY')}} — {{title}}"
+    sortable_fields: ['date', 'title']
+    fields:
+      - { name: "title",   label: "Título",        widget: "string", required: true }
+      - { name: "date",    label: "Data",          widget: "datetime", default: "", format: "YYYY-MM-DD", date_format: "DD/MM/YYYY", time_format: false, required: true }
+      - { name: "tag",     label: "Categoria",     widget: "select", required: true,
+          options:
+            - { label: "Release",  value: "release" }
+            - { label: "Tutorial", value: "tutorial" }
+            - { label: "Aviso",    value: "aviso" }
+            - { label: "Evento",   value: "evento" } }
+      - { name: "thumb",   label: "Ícone (emoji) ou caminho de imagem", widget: "string", default: "🚀", required: false,
+          hint: "Pode ser um emoji (🚀 📊 🔧 🎤) ou um caminho como /assets/img/uploads/foto.jpg" }
+      - { name: "summary", label: "Resumo curto",  widget: "text", required: true }
+      - { name: "body",    label: "Conteúdo completo", widget: "markdown", required: true }
+
+  # ---------------------------------------------------------------------------
+  # ARTIGOS — Tutoriais passo a passo
+  # ---------------------------------------------------------------------------
+  - name: "artigo"
+    label: "📖 Artigos & Tutoriais"
+    label_singular: "Artigo"
+    folder: "_content/artigos"
+    create: true
+    slug: "{{slug}}"
+    summary: "{{title}}  ·  Módulo: {{module}}"
+    sortable_fields: ['module', 'title']
+    view_groups:
+      - label: Por módulo
+        field: module
+    fields:
+      - { name: "title",         label: "Título",         widget: "string", required: true }
+      - { name: "module",        label: "Módulo do ERP",  widget: "select", required: true,
+          options: ["Cadastros", "Vendas", "Compras", "Estoque", "Financeiro", "Fiscal", "Relatórios & BI", "E-commerce", "Configurações"] }
+      - { name: "difficulty",    label: "Dificuldade",    widget: "select", required: false, default: "Iniciante",
+          options: ["Iniciante", "Intermediária", "Avançada"] }
+      - { name: "reading_time",  label: "Tempo de leitura (minutos)", widget: "number", default: 5, required: false }
+      - { name: "updated",       label: "Última atualização", widget: "datetime", format: "YYYY-MM-DD", date_format: "DD/MM/YYYY", time_format: false, required: false }
+      - { name: "summary",       label: "Resumo (1-2 linhas)", widget: "text", required: true }
+      - { name: "prerequisites", label: "Pré-requisitos (lista)", widget: "list", required: false, field: { name: "item", label: "Item", widget: "string" } }
+      - name: "steps"
+        label: "Passos do tutorial"
+        widget: "list"
+        required: false
+        summary: "{{fields.heading}}"
+        fields:
+          - { name: "heading", label: "Título do passo", widget: "string" }
+          - { name: "content", label: "Descrição",       widget: "markdown" }
+          - { name: "image",   label: "Print da tela (opcional)", widget: "image", required: false }
+          - { name: "callout", label: "Caixa de destaque (opcional)", widget: "object", required: false,
+              fields:
+                - { name: "type", label: "Tipo", widget: "select", options: ["info", "success", "warning", "danger"], default: "info" }
+                - { name: "text", label: "Texto", widget: "text" } }
+      - { name: "body", label: "Conteúdo adicional (após os passos)", widget: "markdown", required: false }
+
+  # ---------------------------------------------------------------------------
+  # VÍDEOS — Galeria de vídeo-tutoriais
+  # ---------------------------------------------------------------------------
+  - name: "video"
+    label: "🎬 Vídeos & Tutoriais"
+    label_singular: "Vídeo"
+    folder: "_content/videos"
+    create: true
+    slug: "{{slug}}"
+    summary: "{{title}}  ·  {{category}}"
+    sortable_fields: ['category', 'title']
+    fields:
+      - { name: "title",    label: "Título do vídeo", widget: "string", required: true }
+      - { name: "url",      label: "URL do YouTube",  widget: "string", required: true,
+          hint: "Cole o link completo do YouTube. Ex.: https://www.youtube.com/watch?v=ABC123" }
+      - { name: "category", label: "Categoria",       widget: "select", required: true,
+          options:
+            - { label: "Cadastros",      value: "cadastros" }
+            - { label: "Vendas",         value: "vendas" }
+            - { label: "Fiscal",         value: "fiscal" }
+            - { label: "Financeiro",     value: "financeiro" }
+            - { label: "Estoque",        value: "estoque" }
+            - { label: "BI & Relatórios",value: "bi" } }
+      - { name: "duration", label: "Duração (ex.: 6:32)", widget: "string", required: false }
+      - { name: "body",     label: "Descrição",       widget: "markdown", required: false }
+
+  # ---------------------------------------------------------------------------
+  # CONFIGURAÇÕES GERAIS (single file)
+  # ---------------------------------------------------------------------------
+  - name: "configs"
+    label: "⚙️ Configurações gerais"
+    files:
+      - file: "_data/contato.json"
+        name: "contato"
+        label: "Contatos da empresa"
+        fields:
+          - { name: "telefone",       label: "Telefone", widget: "string" }
+          - { name: "whatsapp_number",label: "Número WhatsApp (apenas dígitos com DDI)", widget: "string", hint: "Ex.: 5511945383704" }
+          - { name: "email",          label: "E-mail", widget: "string" }
+          - { name: "endereco",       label: "Endereço completo", widget: "text" }

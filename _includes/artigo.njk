@@ -1,0 +1,80 @@
+---
+layout: base.njk
+---
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">Início</a><span class="sep">/</span>
+    <a href="/modulos/">Módulos</a><span class="sep">/</span>
+    {% if module %}<span>{{ module }}</span><span class="sep">/</span>{% endif %}
+    <span>{{ title }}</span>
+  </div>
+
+  <div class="doc-layout">
+    <aside class="doc-sidebar">
+      <h4>Nesta página</h4>
+      <ul>
+        {% if prerequisites and prerequisites.length %}<li><a href="#prerequisitos">Pré-requisitos</a></li>{% endif %}
+        {% for s in steps %}
+          <li><a href="#passo-{{ loop.index }}">{{ loop.index }}. {{ s.heading }}</a></li>
+        {% endfor %}
+      </ul>
+
+      <h4>Outros artigos</h4>
+      <ul>
+        {% for a in collections.artigos | slice(0, 8) %}
+          {% if a.url != page.url %}
+            <li><a href="{{ a.url }}">{{ a.data.title }}</a></li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </aside>
+
+    <main class="doc-content">
+      <h1>{{ title }}</h1>
+
+      <div class="doc-meta">
+        {% if updated %}<span>📅 Atualizado em {{ updated | dataPtBr }}</span>{% endif %}
+        {% if reading_time %}<span>⏱️ Leitura: {{ reading_time }} min</span>{% endif %}
+        {% if module %}<span>👤 Módulo: {{ module }}</span>{% endif %}
+        {% if difficulty %}<span>🎯 Dificuldade: {{ difficulty }}</span>{% endif %}
+      </div>
+
+      {% if summary %}<p style="font-size:1.1rem;color:var(--color-text-muted);margin-bottom:32px">{{ summary }}</p>{% endif %}
+
+      {% if prerequisites and prerequisites.length %}
+        <h2 id="prerequisitos">Pré-requisitos</h2>
+        <ul>
+          {% for p in prerequisites %}<li>{{ p }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if steps and steps.length %}
+        <h2>Passo a passo</h2>
+        {% for s in steps %}
+          <div class="step" id="passo-{{ loop.index }}">
+            <div class="step-number">{{ loop.index }}</div>
+            <div class="step-body">
+              <h4>{{ s.heading }}</h4>
+              {{ s.content | safe }}
+              {% if s.image %}<img src="{{ s.image }}" alt="{{ s.heading }}" style="margin:16px 0;border-radius:var(--radius-md);border:1px solid var(--color-border)">{% endif %}
+              {% if s.callout and s.callout.text %}
+                <div class="callout {{ s.callout.type or 'info' }}"><div>{{ s.callout.text | safe }}</div></div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {{ content | safe }}
+
+      <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--color-border);text-align:center;color:var(--color-text-muted)">
+        <p>Este artigo foi útil?</p>
+        <div style="margin-top:12px">
+          <button class="btn btn-outline" style="margin:0 4px">👍 Sim</button>
+          <button class="btn btn-outline" style="margin:0 4px">👎 Não</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

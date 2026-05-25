@@ -1,0 +1,6 @@
+# Arquivos que o Eleventy deve ignorar (não processar nem copiar como página)
+README*.md
+GUIA-PUBLICACAO.md
+node_modules
+_site
+.git
