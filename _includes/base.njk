@@ -19,7 +19,21 @@
       </a>
       <nav class="nav-main">
         <a href="/"          {% if page.url == "/" %}class="active"{% endif %}>Início</a>
-        <a href="/modulos/"  {% if page.url.startsWith("/modulos") %}class="active"{% endif %}>Módulos</a>
+        <div class="nav-item-dropdown">
+          <a href="/modulos/" class="{% if page.url.startsWith('/modulos') %}active {% endif %}nav-dropdown-trigger">Módulos <span class="dropdown-caret">▾</span></a>
+          <div class="nav-dropdown-menu">
+            <a href="/modulos/cadastros.html">Cadastros</a>
+            <a href="/modulos/compras.html">Compras</a>
+            <a href="/modulos/configuracoes.html">Configurações</a>
+            <a href="/modulos/dashboard.html">Dashboard</a>
+            <a href="/modulos/ecommerce.html">E-commerce &amp; Marketplaces</a>
+            <a href="/modulos/estoque.html">Estoque</a>
+            <a href="/modulos/financeiro.html">Financeiro</a>
+            <a href="/modulos/fiscal.html">Fiscal</a>
+            <a href="/modulos/relatorios.html">Relatórios &amp; BI</a>
+            <a href="/modulos/vendas.html">Vendas</a>
+          </div>
+        </div>
         <a href="/faq/"      {% if page.url.startsWith("/faq") %}class="active"{% endif %}>FAQ</a>
         <a href="/noticias/" {% if page.url.startsWith("/noticias") %}class="active"{% endif %}>Notícias</a>
         <a href="/videos/"   {% if page.url.startsWith("/videos") %}class="active"{% endif %}>Vídeos</a>

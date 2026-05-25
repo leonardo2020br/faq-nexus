@@ -17,6 +17,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // -------------------------
+  // DROPDOWN MÓDULOS (mobile: toggle ao clicar no trigger)
+  // -------------------------
+  const dropdownWrap = document.querySelector('.nav-item-dropdown');
+  if (dropdownWrap) {
+    const trigger = dropdownWrap.querySelector('.nav-dropdown-trigger');
+    // Em touch/mobile, o hover CSS não funciona — usa toggle por clique
+    trigger.addEventListener('click', e => {
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        e.preventDefault();
+        dropdownWrap.classList.toggle('open');
+      }
+      // Desktop: deixa o href funcionar normalmente (clique vai para /modulos/)
+    });
+    // Fecha ao clicar fora
+    document.addEventListener('click', e => {
+      if (!dropdownWrap.contains(e.target)) {
+        dropdownWrap.classList.remove('open');
+      }
+    });
+  }
+
+  // -------------------------
   // BUSCA GLOBAL (filtra elementos com [data-search])
   // -------------------------
   const searchInput = document.querySelector('[data-search-input]');
