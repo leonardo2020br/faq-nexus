@@ -3,12 +3,14 @@ title: "Migração Correios: SIGEP Web → API (Sigep Via API)"
 module: "Configurações"
 difficulty: "Intermediária"
 reading_time: 8
-updated: "2026-05-25"
+updated: 2026-05-25
 summary: "Passo a passo para migrar a integração dos Correios do modo SIGEP Web para o novo modo Sigep Via API, incluindo configuração no sistema, geração do token no portal dos Correios e atualização do cadastro de transportadora."
+permalink: /artigos/correios-api-integracao/index.html
+layout: artigo.njk
 prerequisites:
-  - item: "Acesso ao módulo Configurações com perfil Administrador"
-  - item: "Conta ativa no Portal Correios (cws.correios.com.br)"
-  - item: "Cartão de postagem dos Correios em mãos"
+  - "Acesso ao módulo Configurações com perfil Administrador"
+  - "Conta ativa no Portal Correios (cws.correios.com.br)"
+  - "Cartão de postagem dos Correios em mãos"
 steps:
   - heading: "Configurar o modo Sigep Via API no sistema"
     content: |
@@ -28,8 +30,9 @@ steps:
       Acesse o portal dos Correios em **https://cws.correios.com.br/ajuda** e gere o seu **Token de API**.
 
       Guarde o token gerado — ele será usado como **senha** no cadastro da transportadora (próximo passo).
-
-      > **Atenção:** O token tem validade. Caso a integração pare de funcionar, acesse o portal novamente e regenere o token.
+    callout:
+      type: warning
+      text: "O token tem validade. Caso a integração pare de funcionar, acesse o portal novamente e regenere o token."
 
   - heading: "Atualizar o cadastro da transportadora CORREIOS"
     content: |
@@ -44,22 +47,21 @@ steps:
 
       Salve o cadastro.
     image: /assets/img/artigos/correios-api-integracao/02-passo.png
-
-body: |
-  ## Limpeza de Faixas de Etiqueta (importante)
-
-  Após migrar para o modo **Sigep Via API**, é necessário excluir as faixas de etiqueta livres que ficaram armazenadas pelo SIGEP Web. Para isso, execute a consulta abaixo no banco de dados para identificar os registros:
-
-  ```sql
-  SELECT *
-  FROM etiquetas_correios
-  WHERE id_nota_saida IS NULL
-    AND id_cliente IS NULL
-    AND data_emissao IS NULL
-    AND id_transp = <id da transportadora Correios>
-  ```
-
-  Substitua `<id da transportadora Correios>` pelo ID do cadastro dos Correios no sistema. Após identificar os registros, exclua-os para evitar conflitos com as novas faixas geradas via API.
-
-  > **Recomendação:** Realize essa limpeza antes de emitir as primeiras etiquetas no novo modo.
 ---
+
+## Limpeza de Faixas de Etiqueta (importante)
+
+Após migrar para o modo **Sigep Via API**, é necessário excluir as faixas de etiqueta livres que ficaram armazenadas pelo SIGEP Web. Execute a consulta abaixo no banco de dados para identificar os registros:
+
+```sql
+SELECT *
+FROM etiquetas_correios
+WHERE id_nota_saida IS NULL
+  AND id_cliente IS NULL
+  AND data_emissao IS NULL
+  AND id_transp = <id da transportadora Correios>
+```
+
+Substitua `<id da transportadora Correios>` pelo ID do cadastro dos Correios no sistema. Após identificar os registros, exclua-os para evitar conflitos com as novas faixas geradas via API.
+
+> **Recomendação:** Realize essa limpeza antes de emitir as primeiras etiquetas no novo modo.

@@ -3,12 +3,14 @@ title: "Geração de Contas a Receber na Devolução de Compra"
 module: "Financeiro"
 difficulty: "Intermediária"
 reading_time: 10
-updated: "2026-05-25"
+updated: 2026-05-25
 summary: "Como configurar e utilizar a geração de contas a receber a partir de notas de devolução de compra, em vez do crédito padrão ao fornecedor."
+permalink: /artigos/contas-receber-devolucao/index.html
+layout: artigo.njk
 prerequisites:
-  - item: "Permissão de usuário habilitada para gerar Contas a Receber por devolução"
-  - item: "Acesso ao módulo Configurações → Empresas"
-  - item: "CFOP da devolução configurado para gerar financeiro"
+  - "Permissão de usuário habilitada para gerar Contas a Receber por devolução"
+  - "Acesso ao módulo Configurações → Empresas"
+  - "CFOP da devolução configurado para gerar financeiro"
 steps:
   - heading: "Habilitar a permissão de geração de Contas a Receber por devolução"
     content: |
@@ -16,7 +18,7 @@ steps:
 
       Para liberar a geração de Contas a Receber, acesse as **permissões de usuário** e habilite a opção correspondente a este recurso.
 
-      > **Atenção:** A geração de parcelas utiliza campos padrões definidos na configuração da empresa. Esses padrões são essenciais para controles como: bloqueio de emissão de boleto e bloqueio de envio de carta de cobrança nesses títulos.
+      A geração de parcelas utiliza campos padrões definidos na configuração da empresa. Esses padrões são essenciais para controles como bloqueio de emissão de boleto e bloqueio de envio de carta de cobrança nesses títulos.
     image: /assets/img/artigos/contas-receber-devolucao/01-passo.png
 
   - heading: "Configurar os parâmetros padrão na Empresa"
@@ -25,9 +27,7 @@ steps:
 
       Neste campo, defina o **Tipo de Cobrança padrão** que será usado ao criar o Contas a Receber por meio da devolução.
 
-      Pontos importantes:
-      - Foi criado o tipo de cobrança **ID 26 - MERCADORIA/DESCONTO**, listado exclusivamente nesses documentos. Use-o quando a liquidação não deve gerar financeiro (ex.: fornecedor devolveu em mercadorias).
-      - Controles automáticos aplicados nesses títulos: **sem junções**, **sem envio para desconto bancário**.
+      Foi criado o tipo de cobrança **ID 26 - MERCADORIA/DESCONTO**, listado exclusivamente nesses documentos. Use-o quando a liquidação não deve gerar financeiro (ex.: fornecedor devolveu em mercadorias). Controles automáticos aplicados: sem junções, sem envio para desconto bancário.
     image: /assets/img/artigos/contas-receber-devolucao/02-passo.png
     callout:
       type: info
@@ -45,10 +45,9 @@ steps:
 
   - heading: "Identificação e bloqueio da nota que gerou Contas a Receber"
     content: |
-      Ao optar por gerar Contas a Receber, a nota fiscal fica **identificada internamente** (campo `nota_saida.gerou_contas_receber`) para impedir alterações que afetariam o financeiro.
+      Ao optar por gerar Contas a Receber, a nota fiscal fica **identificada internamente** para impedir alterações que afetariam o financeiro.
 
-      - **Alterações comuns ficam bloqueadas** após a gravação
-      - Via **CTRL+P** é possível liberar alterações, mas **sem impacto no financeiro já gerado**
+      Alterações comuns ficam bloqueadas após a gravação. Via **CTRL+P** é possível liberar alterações, mas sem impacto no financeiro já gerado.
 
       Isso garante a rastreabilidade entre a nota de devolução e os títulos criados no Contas a Receber.
     image: /assets/img/artigos/contas-receber-devolucao/04-passo.png
@@ -61,20 +60,17 @@ steps:
       - **Origem:** CP
       - **Demais campos:** utilizados os padrões definidos na configuração da empresa
 
-      Para devoluções **incluídas manualmente** (sem vínculo a uma entrada no sistema), ao optar por gerar Contas a Receber, o campo **número da nota de referência torna-se obrigatório**. O sistema exibirá a mensagem:
-
-      > *"É NECESSÁRIO DEFINIR NÚMERO DA NOTA PARA PROSSEGUIR COM O MÉTODO DE CONTAS A RECEBER"*
+      Para devoluções **incluídas manualmente** (sem vínculo a uma entrada no sistema), o campo número da nota de referência torna-se obrigatório ao optar por gerar Contas a Receber.
     image: /assets/img/artigos/contas-receber-devolucao/07-passo.png
+    callout:
+      type: warning
+      text: "É NECESSÁRIO DEFINIR NÚMERO DA NOTA PARA PROSSEGUIR COM O MÉTODO DE CONTAS A RECEBER — mensagem exibida para devoluções manuais sem nota de referência."
 
   - heading: "Atenção à permissão de exclusão do financeiro da nota original"
     content: |
-      Existe outra permissão que impacta diretamente este recurso:
+      Existe outra permissão que impacta diretamente este recurso: **Vendas → 3.453 — Na devolução TOTAL, excluir Financeiro da nota Original**.
 
-      **Vendas → 3.453 — Na devolução TOTAL, excluir Financeiro da nota Original**
-
-      Quando essa permissão está ativa, ao gravar uma devolução o sistema pergunta: *"CONFIRMA REALIZAR A EXCLUSÃO DO LANÇAMENTO ORIGINAL?"*
-
-      Porém, se o usuário optou por **gerar Contas a Receber**, a pergunta de exclusão **não será exibida** — o financeiro da nota original é mantido. A exclusão só ocorre quando o usuário opta por **Gerar Crédito**.
+      Quando essa permissão está ativa, ao gravar uma devolução o sistema pergunta se deve excluir o lançamento original. Porém, se o usuário optou por **gerar Contas a Receber**, a pergunta de exclusão **não será exibida** — o financeiro da nota original é mantido. A exclusão só ocorre ao optar por **Gerar Crédito**.
     image: /assets/img/artigos/contas-receber-devolucao/09-passo.png
     callout:
       type: warning
@@ -84,10 +80,7 @@ steps:
     content: |
       Para liquidar títulos de devolução sem movimentação financeira (ex.: fornecedor devolveu em mercadorias), utilize o tipo de cobrança **ID 26 - MERCADORIA/DESCONTO** na baixa.
 
-      O sistema suporta dois cenários:
-
-      - **Baixa por Valor e Parcela** aplicando MERCADORIA/DESCONTO — quita o título sem gerar financeiro
-      - **Baixa por Valor e Parcela** com **recebimento parcial**, combinando MERCADORIA/DESCONTO com outro tipo de recebimento
+      O sistema suporta dois cenários: baixa total aplicando MERCADORIA/DESCONTO, e baixa com recebimento parcial combinando MERCADORIA/DESCONTO com outro tipo de recebimento.
     image: /assets/img/artigos/contas-receber-devolucao/10-passo.png
 
   - heading: "Restrições nos títulos gerados por devolução (tela 0079)"
