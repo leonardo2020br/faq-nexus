@@ -10,14 +10,15 @@ Base de conhecimento web para os clientes do Nexus ERP. Construído com Eleventy
 
 - **5 páginas principais:** Início, Módulos, FAQ, Notícias, Vídeos
 - **10 módulos do ERP** com busca integrada na sidebar (ver estrutura detalhada abaixo)
-- **10 artigos publicados com imagens reais:**
+- **11 artigos publicados com imagens reais:**
   - Cadastro de Rota
   - Certificados API Itaú (Boleto Híbrido)
   - Certificado API Bradesco (Boleto Híbrido)
   - Conciliação da Conta Corrente com Arquivo OFX
   - Definir boleto padrão da empresa
   - Carta e Aviso de Cobrança
-  - Migração Correios SIGEP→API
+  - Migração Correios SIGEP→API (Outros)
+  - Migração Correios: SIGEP Web → Sigep Via API (Integrações)
   - Parametrização e Emissão de GNRE
   - Nexus ERP e a Reforma Tributária
   - Conciliação Marketplace
@@ -33,7 +34,7 @@ Base de conhecimento web para os clientes do Nexus ERP. Construído com Eleventy
 |---|---|---|
 | **Cadastros** | Clientes, Produtos, Equipamentos, Serviços | Cadastro de Rota (Clientes) |
 | **Compras** | *(a definir)* | — |
-| **Configurações** | Usuários, Configuração do Sistema, Empresas, Horários, Canais de Venda, Tipos de Pedido, Terminais, Andamentos, Outros | Correios — Migração SIGEP→API (Outros) |
+| **Configurações** | Usuários, Configuração do Sistema, Empresas, Horários, Canais de Venda, Tipos de Pedido, Terminais, Andamentos, Integrações, Outros | Correios — Migração SIGEP→API (Outros); Migração Correios: SIGEP Web → Sigep Via API (Integrações) |
 | **Dashboard** | Dashboard Nexus | — |
 | **E-commerce & Marketplaces** | Operações | Conciliação Marketplace (Operações) |
 | **Estoque** | Inventário, Ajuste, Transferências, Históricos, Aferições | — |
@@ -289,6 +290,8 @@ Sim. Configure 2 projetos no Cloudflare Pages: um apontando para a branch `main`
 - Novo artigo: **Conciliação Marketplace** (E-commerce → Operações) com 7 imagens extraídas do PDF
 - Novo artigo: **Certificado API Bradesco — Boleto Híbrido** (Financeiro → Bancos) com 20 imagens extraídas do docx
 - Novo artigo: **Conciliação da Conta Corrente com Arquivo OFX** (Financeiro → Bancos) com 7 imagens extraídas do docx
+- Novo artigo: **Migração Correios: SIGEP Web → Sigep Via API** (Configurações → Integrações) com 2 imagens + query SQL de limpeza de faixas
+- Novo submenu **Integrações** adicionado ao módulo Configurações
 - Módulos em ordem alfabética na home e na listagem `/modulos/`
 - Ícone dos módulos com fundo azul claro (`#e0ecff`)
 - Módulo Dashboard adicionado (10º módulo)
