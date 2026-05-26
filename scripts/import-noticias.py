@@ -122,26 +122,29 @@ def extract_image(item, desc_raw):
     """Extrai a URL da imagem do item RSS.
 
     Tenta, em ordem:
-      1. Tag <media:content url="..."> (namespace Yahoo Media RSS)
+      1. Qualquer child element que tenha atributo 'url' com extensão de imagem
+         (cobre media:content, enclosure, e qualquer variante de namespace)
       2. Primeiro <img src="..."> dentro do HTML da <description>
       3. Fallback: emoji padrão
     """
-    # 1. media:content (formato que o Contabeis usa)
-    MEDIA_NS = 'http://search.yahoo.com/mrss/'
-    media_el = item.find(f'{{{MEDIA_NS}}}content')
-    if media_el is not None:
-        url = media_el.get('url', '').strip()
-        if url.startswith('http'):
+    IMG_EXTS = ('.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif')
+
+    # 1. Itera TODOS os filhos do item procurando atributo url com imagem
+    for el in item.iter():
+        url = el.get('url', '').strip()
+        if url.startswith('http') and any(url.lower().endswith(ext) for ext in IMG_EXTS):
+            print(f"  [img] encontrada via element '{el.tag}': {url[:60]}")
             return url
 
-    # 2. <img src="..."> no HTML da description
-    img_match = re.search(r'<img\s[^>]*src=["\']([^"\']+)["\']', desc_raw or '', re.IGNORECASE)
+    # 2. <img src="..."> no HTML da description (CDATA)
+    img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', desc_raw or '', re.IGNORECASE)
     if img_match:
         url = img_match.group(1).strip()
         if url.startswith('http'):
+            print(f"  [img] encontrada via <img> na description: {url[:60]}")
             return url
 
-    # 3. Fallback emoji
+    print(f"  [img] nenhuma imagem encontrada, usando emoji")
     return THUMB_DEFAULT
 
 
