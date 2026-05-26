@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
    3. Copie o ID (ex.: "xpwdkgrn") e substitua SEU_FORM_ID abaixo
    =========================================================== */
 (function () {
-  const FORMSPREE_ID = 'SEU_FORM_ID'; // ← substituir pelo ID do Formspree
+  const FORMSPREE_ID = 'maqkppwk'; // ← substituir pelo ID do Formspree
 
   const MODAL_HTML = `
 <div id="modal-suporte" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-suporte-title" hidden>

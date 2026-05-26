@@ -10,18 +10,18 @@ Base de conhecimento web para os clientes do Nexus ERP. Construído com Eleventy
 
 - **5 páginas principais:** Início, Módulos, FAQ, Notícias, Vídeos
 - **10 módulos do ERP** com busca integrada na sidebar (ver estrutura detalhada abaixo)
-- **11 artigos publicados com imagens reais:**
+- **12 artigos publicados com imagens reais:**
   - Cadastro de Rota
   - Certificados API Itaú (Boleto Híbrido)
   - Certificado API Bradesco (Boleto Híbrido)
   - Conciliação da Conta Corrente com Arquivo OFX
   - Definir boleto padrão da empresa
   - Carta e Aviso de Cobrança
-  - Migração Correios SIGEP→API (Outros)
   - Migração Correios: SIGEP Web → Sigep Via API (Integrações)
   - Parametrização e Emissão de GNRE
   - Nexus ERP e a Reforma Tributária
   - Conciliação Marketplace
+  - Geração de Contas a Receber na Devolução de Compra
 - **16 FAQs** em 7 categorias
 - **6 notícias/releases** com tags
 - **6 vídeos** prontos para receber URL do YouTube
@@ -34,11 +34,11 @@ Base de conhecimento web para os clientes do Nexus ERP. Construído com Eleventy
 |---|---|---|
 | **Cadastros** | Clientes, Produtos, Equipamentos, Serviços | Cadastro de Rota (Clientes) |
 | **Compras** | *(a definir)* | — |
-| **Configurações** | Usuários, Configuração do Sistema, Empresas, Horários, Canais de Venda, Tipos de Pedido, Terminais, Andamentos, Integrações, Outros | Correios — Migração SIGEP→API (Outros); Migração Correios: SIGEP Web → Sigep Via API (Integrações) |
+| **Configurações** | Usuários, Configuração do Sistema, Empresas, Horários, Canais de Venda, Tipos de Pedido, Terminais, Andamentos, Integrações, Outros | Migração Correios: SIGEP Web → Sigep Via API (Integrações) |
 | **Dashboard** | Dashboard Nexus | — |
 | **E-commerce & Marketplaces** | Operações | Conciliação Marketplace (Operações) |
 | **Estoque** | Inventário, Ajuste, Transferências, Históricos, Aferições | — |
-| **Financeiro** | Bancos, Cartão de Crédito, Contas a Pagar, Contas a Receber, Cartas de Cobrança | API Itaú + API Bradesco + Boleto Padrão + Conciliação OFX (Bancos); Carta de Cobrança (Cartas de Cobrança) |
+| **Financeiro** | Bancos, Cartão de Crédito, Contas a Pagar, Contas a Receber, Cartas de Cobrança | API Itaú + API Bradesco + Boleto Padrão + Conciliação OFX (Bancos); Carta de Cobrança (Cartas de Cobrança); Geração de Contas a Receber na Devolução (Contas a Receber) |
 | **Fiscal** | TES, TES Automática, NCM, CFOP, Alíquotas de ICMS, GNRE, Tributação de Serviços, Mensagem Tributária, SPEDs, Reforma Tributária, Outros | GNRE (GNRE); Reforma Tributária (Reforma Tributária) |
 | **Relatórios & BI** | *(a definir)* | — |
 | **Vendas** | Vendas, Separação, Expedição, Metas, Comissões, Outros | — |
@@ -56,7 +56,7 @@ FAQ NEXUS/
 │   └── videos/            Catálogo de vídeos (1 .md por vídeo)
 │
 ├── _data/                 ← Dados globais
-│   ├── contato.json       Telefone, WhatsApp, e-mail, endereço
+│   ├── contato.json       WhatsApp, e-mail, endereço (sem telefone fixo)
 │   └── site.json          Nome, logo, URL principal
 │
 ├── _includes/             ← Templates compartilhados
@@ -93,6 +93,38 @@ FAQ NEXUS/
 ├── package.json           ← Lista de dependências
 └── .github/workflows/     ← CI/CD para build automático
 ```
+
+---
+
+## 🧭 Dropdown de módulos no nav
+
+O botão **Módulos** no menu superior abre um painel suspenso com os 10 módulos ao passar o cursor (desktop) ou tocar (mobile). Clicar em qualquer módulo vai direto para a página correspondente.
+
+Controlado por:
+- **CSS:** bloco `NAV DROPDOWN` em `assets/css/style.css`
+- **JS:** bloco `DROPDOWN MÓDULOS` em `assets/js/main.js`
+- **HTML:** `<div class="nav-item-dropdown">` em cada arquivo `.html` e em `_includes/base.njk`
+
+---
+
+## 📋 Formulário de chamado de suporte
+
+O botão **"Abrir Chamado"** (na home e no rodapé de todas as páginas) abre um modal com formulário completo: nome, empresa, e-mail, WhatsApp, módulo, tipo de ocorrência, descrição, upload de prints/vídeos (até 25 MB cada) e campo de link para vídeos maiores.
+
+O envio vai para **suporte@nexuserp.com.br** via Formspree.
+
+**Configuração necessária (uma única vez):**
+1. Crie conta grátis em [formspree.io](https://formspree.io)
+2. Crie um novo form apontando para `suporte@nexuserp.com.br`
+3. Copie o ID gerado (ex.: `xpwdkgrn`)
+4. Em `assets/js/main.js`, substitua `SEU_FORM_ID` pelo ID copiado
+5. Commit e push — os chamados passam a chegar na caixa de suporte
+
+Controlado por:
+- **CSS:** bloco `MODAL DE SUPORTE` em `assets/css/style.css`
+- **JS:** bloco `MODAL DE SUPORTE` em `assets/js/main.js` (injeta HTML, valida arquivos, envia via Formspree)
+- **Trigger na home:** botão `onclick="abrirModalSuporte()"` na seção CTA de `index.html`
+- **Trigger no rodapé:** link `Abrir Chamado de Suporte` em `_includes/base.njk`
 
 ---
 
@@ -286,6 +318,11 @@ Sim. Configure 2 projetos no Cloudflare Pages: um apontando para a branch `main`
 ## 📅 Histórico de atualizações
 
 ### 25/05/2026
+- Novo artigo: **Geração de Contas a Receber na Devolução de Compra** (Financeiro → Contas a Receber) com 13 imagens extraídas do PDF
+- **Modal de chamado de suporte** — botão "Abrir Chamado" na home e no rodapé abre formulário com upload de prints/vídeos; envio via Formspree para `suporte@nexuserp.com.br` (requer configuração do FORM_ID)
+- **Dropdown de módulos no nav** — passar o cursor sobre "Módulos" abre painel com os 10 módulos em lista; suporte a hover (desktop) e toque (mobile)
+- **Contatos atualizados** — WhatsApp alterado para `5511960304708`, botão e referências de telefone removidos de todas as páginas
+- Artigo duplicado `correios-sigep-ppn` removido; mantido apenas `correios-api-integracao` em Configurações → Integrações
 - Busca integrada na sidebar de todos os 10 módulos (filtra artigos em tempo real por módulo)
 - Novo artigo: **Conciliação Marketplace** (E-commerce → Operações) com 7 imagens extraídas do PDF
 - Novo artigo: **Certificado API Bradesco — Boleto Híbrido** (Financeiro → Bancos) com 20 imagens extraídas do docx
