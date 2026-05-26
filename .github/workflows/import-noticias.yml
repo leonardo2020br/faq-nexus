@@ -1,0 +1,77 @@
+# =============================================================================
+# Workflow: Importar Notícias do Contabeis.com.br
+# -----------------------------------------------------------------------------
+# Roda automaticamente todo dia às 07:00 (horário de Brasília = 10:00 UTC).
+# Também pode ser disparado manualmente via "Run workflow" no GitHub Actions.
+#
+# O que faz:
+#   1. Busca o RSS https://www.contabeis.com.br/rss/noticias/
+#   2. Cria arquivos .md novos em _content/noticias/ (ignora os já existentes)
+#   3. Commita e faz push — o Cloudflare Pages reconstrói automaticamente
+# =============================================================================
+
+name: Importar Notícias Contabeis
+
+on:
+  schedule:
+    # 10:00 UTC = 07:00 Brasília (horário de verão) / 07:00 BRT
+    - cron: '0 10 * * *'
+
+  # Permite disparar manualmente pelo GitHub → Actions → Run workflow
+  workflow_dispatch:
+    inputs:
+      max_articles:
+        description: 'Número máximo de artigos a importar'
+        required: false
+        default: '20'
+      days_back:
+        description: 'Ignorar artigos mais antigos que N dias'
+        required: false
+        default: '60'
+
+permissions:
+  contents: write   # necessário para commitar e pushar
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Executar script de importação
+        run: |
+          MAX="${{ github.event.inputs.max_articles || '20' }}"
+          DAYS="${{ github.event.inputs.days_back || '60' }}"
+          python scripts/import-noticias.py --max "$MAX" --days "$DAYS"
+
+      - name: Verificar se há arquivos novos
+        id: check_changes
+        run: |
+          git add _content/noticias/
+          if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Nenhuma notícia nova encontrada."
+          else
+            COUNT=$(git diff --staged --name-only | wc -l)
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Nova(s) notícia(s): $COUNT arquivo(s)"
+          fi
+
+      - name: Commitar e publicar
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          DATE=$(date -u +"%d/%m/%Y %H:%M UTC")
+          git commit -m "chore: importar notícias do Contabeis ($DATE)"
+          git push
