@@ -79,6 +79,7 @@
           <h5>Contato</h5>
           <ul>
             <li>✉️ {{ contato.email }}</li>
+            <li><a href="#" onclick="abrirModalSuporte();return false;" style="color:#94a3b8">📋 Abrir Chamado de Suporte</a></li>
             <li>📍 {{ contato.endereco | replace("\n", "<br>") | safe }}</li>
           </ul>
         </div>
