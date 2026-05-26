@@ -6,11 +6,13 @@ Importa notícias do RSS do Contabeis (https://www.contabeis.com.br/rss/noticias
 e cria arquivos Markdown em _content/noticias/ para o site FAQ NEXUS (Eleventy).
 
 Como usar:
-  python scripts/import-noticias.py [--max 20] [--days 60]
+  python scripts/import-noticias.py [--max 20] [--days 60] [--reset]
 
 Flags:
-  --max   Número máximo de artigos a importar (padrão: 20)
-  --days  Ignorar artigos mais antigos que N dias (padrão: 60)
+  --max    Número máximo de artigos a importar (padrão: 20)
+  --days   Ignorar artigos mais antigos que N dias (padrão: 60)
+  --reset  Apaga TODOS os arquivos existentes em _content/noticias/ antes de importar
+           (útil para reimportar com imagens após correção do script)
 """
 
 import os
@@ -116,22 +118,54 @@ def fetch_rss():
         return resp.read()
 
 
+def extract_image(item, desc_raw):
+    """Extrai a URL da imagem do item RSS.
+
+    Tenta, em ordem:
+      1. Tag <media:content url="..."> (namespace Yahoo Media RSS)
+      2. Primeiro <img src="..."> dentro do HTML da <description>
+      3. Fallback: emoji padrão
+    """
+    # 1. media:content (formato que o Contabeis usa)
+    MEDIA_NS = 'http://search.yahoo.com/mrss/'
+    media_el = item.find(f'{{{MEDIA_NS}}}content')
+    if media_el is not None:
+        url = media_el.get('url', '').strip()
+        if url.startswith('http'):
+            return url
+
+    # 2. <img src="..."> no HTML da description
+    img_match = re.search(r'<img\s[^>]*src=["\']([^"\']+)["\']', desc_raw or '', re.IGNORECASE)
+    if img_match:
+        url = img_match.group(1).strip()
+        if url.startswith('http'):
+            return url
+
+    # 3. Fallback emoji
+    return THUMB_DEFAULT
+
+
 def parse_items(xml_bytes):
     root = ET.fromstring(xml_bytes)
     ns = {'content': 'http://purl.org/rss/1.0/modules/content/'}
     items = []
     for item in root.iter('item'):
-        title       = (item.findtext('title') or '').strip()
-        link        = (item.findtext('link') or '').strip()
-        description = strip_html(item.findtext('description') or '')
+        title    = (item.findtext('title') or '').strip()
+        link     = (item.findtext('link') or '').strip()
+        desc_raw = item.findtext('description') or ''
+        description = strip_html(desc_raw)
         pub_date    = item.findtext('pubDate') or ''
         categories  = [c.text.strip() for c in item.findall('category') if c.text]
+
         # content:encoded como fallback de descrição mais longa
         content_enc = item.find('content:encoded', ns)
         if content_enc is not None and content_enc.text:
             long_desc = strip_html(content_enc.text)
             if len(long_desc) > len(description):
                 description = long_desc
+
+        # Extrai imagem
+        thumb = extract_image(item, desc_raw)
 
         if not title or not link:
             continue
@@ -148,17 +182,24 @@ def parse_items(xml_bytes):
             'summary':     truncate(description),
             'date':        dt,
             'categories':  categories,
+            'thumb':       thumb,
         })
     return items
 
 
 def create_md(item, slug):
     """Gera o conteúdo do arquivo Markdown para uma notícia."""
-    date_iso  = item['date'].strftime('%Y-%m-%d')
-    date_ptbr = item['date'].strftime('%d/%m/%Y')
-    tag       = guess_tag(item['categories'])
-    title_esc = item['title'].replace('"', '\\"')
+    date_iso    = item['date'].strftime('%Y-%m-%d')
+    tag         = guess_tag(item['categories'])
+    title_esc   = item['title'].replace('"', '\\"')
     summary_esc = item['summary'].replace('"', '\\"')
+    thumb       = item.get('thumb', THUMB_DEFAULT)
+
+    # thumb: URL → string entre aspas; emoji → sem aspas
+    if thumb.startswith('http'):
+        thumb_yaml = f'"{thumb}"'
+    else:
+        thumb_yaml = thumb
 
     body = f"""---
 layout: noticia.njk
@@ -166,7 +207,7 @@ title: "{title_esc}"
 date: {date_iso}
 tag: {tag}
 summary: "{summary_esc}"
-thumb: {THUMB_DEFAULT}
+thumb: {thumb_yaml}
 source_url: "{item['link']}"
 permalink: /noticias/{slug}/index.html
 ---
@@ -182,64 +223,7 @@ permalink: /noticias/{slug}/index.html
 
 def main():
     parser = argparse.ArgumentParser(description="Importar notícias do Contabeis RSS")
-    parser.add_argument('--max',  type=int, default=20, help='Máximo de artigos (padrão: 20)')
-    parser.add_argument('--days', type=int, default=60, help='Ignorar artigos mais antigos que N dias (padrão: 60)')
-    args = parser.parse_args()
-
-    os.makedirs(OUT_DIR, exist_ok=True)
-    known = existing_slugs()
-    cutoff = datetime.now(timezone.utc) - timedelta(days=args.days)
-
-    print(f"[import-noticias] Buscando RSS: {RSS_URL}")
-    try:
-        xml_bytes = fetch_rss()
-    except Exception as e:
-        print(f"[ERRO] Falha ao buscar RSS: {e}")
-        sys.exit(1)
-
-    items = parse_items(xml_bytes)
-    print(f"[import-noticias] {len(items)} itens no feed")
-
-    created = 0
-    skipped = 0
-
-    for item in items:
-        if created >= args.max:
-            break
-
-        if item['date'] < cutoff:
-            skipped += 1
-            continue
-
-        slug = slugify(item['title'])
-        if not slug:
-            continue
-
-        # Evita duplicatas por slug
-        if slug in known:
-            skipped += 1
-            continue
-
-        # Garante slug único se houver colisão
-        base_slug = slug
-        counter = 2
-        while slug in known:
-            slug = f"{base_slug}-{counter}"
-            counter += 1
-
-        md_path = os.path.join(OUT_DIR, f"{slug}.md")
-        content = create_md(item, slug)
-
-        with open(md_path, 'w', encoding='utf-8') as f:
-            f.write(content)
-
-        known.add(slug)
-        created += 1
-        date_str = item['date'].strftime('%Y-%m-%d')
-        print(f"  ✅ [{date_str}] {slug}.md")
-
-    print(f"\n[import-noticias] Resultado: {created} criados, {skipped} ignorados.")
-
-
-if __name__ == '__main__':
-    main()
+    parser.add_argument('--max',   type=int, default=20,    help='Máximo de artigos (padrão: 20)')
+    parser.add_argument('--days',  type=int, default=60,    help='Ignorar artigos mais antigos que N dias (padrão: 60)')
+    parser.add_argument('--reset', action='store_true',     help='Apaga todos os .md existentes antes de importar')
+    args = parser

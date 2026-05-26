@@ -28,6 +28,14 @@ on:
         description: 'Ignorar artigos mais antigos que N dias'
         required: false
         default: '60'
+      reset:
+        description: 'Apagar e reimportar TODOS os artigos (use para corrigir imagens)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 permissions:
   contents: write   # necessário para commitar e pushar
@@ -52,26 +60,19 @@ jobs:
         run: |
           MAX="${{ github.event.inputs.max_articles || '20' }}"
           DAYS="${{ github.event.inputs.days_back || '60' }}"
-          python scripts/import-noticias.py --max "$MAX" --days "$DAYS"
+          RESET="${{ github.event.inputs.reset || 'false' }}"
+          RESET_FLAG=""
+          if [ "$RESET" = "true" ]; then RESET_FLAG="--reset"; fi
+          python scripts/import-noticias.py --max "$MAX" --days "$DAYS" $RESET_FLAG
 
-      - name: Verificar se há arquivos novos
+      - name: Verificar se há arquivos novos ou alterados
         id: check_changes
         run: |
-          git add _content/noticias/
+          git add -A _content/noticias/
           if git diff --staged --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Nenhuma notícia nova encontrada."
           else
             COUNT=$(git diff --staged --name-only | wc -l)
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Nova(s) notícia(s): $COUNT arquivo(s)"
-          fi
-
-      - name: Commitar e publicar
-        if: steps.check_changes.outputs.changed == 'true'
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          DATE=$(date -u +"%d/%m/%Y %H:%M UTC")
-          git commit -m "chore: importar notícias do Contabeis ($DATE)"
-          git push
+            echo "Arquivo(s) alterado(s): $CO
