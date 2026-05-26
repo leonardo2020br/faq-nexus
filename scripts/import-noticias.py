@@ -2,17 +2,17 @@
 """
 import-noticias.py
 ==================
-Importa notícias do RSS do Contabeis (https://www.contabeis.com.br/rss/noticias/)
+Importa noticias do RSS do Contabeis (https://www.contabeis.com.br/rss/noticias/)
 e cria arquivos Markdown em _content/noticias/ para o site FAQ NEXUS (Eleventy).
 
 Como usar:
   python scripts/import-noticias.py [--max 20] [--days 60] [--reset]
 
 Flags:
-  --max    Número máximo de artigos a importar (padrão: 20)
-  --days   Ignorar artigos mais antigos que N dias (padrão: 60)
+  --max    Numero maximo de artigos a importar (padrao: 20)
+  --days   Ignorar artigos mais antigos que N dias (padrao: 60)
   --reset  Apaga TODOS os arquivos existentes em _content/noticias/ antes de importar
-           (útil para reimportar com imagens após correção do script)
+           (util para reimportar com imagens apos correcao do script)
 """
 
 import os
@@ -25,55 +25,39 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from email.utils import parsedate_to_datetime
 
-# ── Configurações ──────────────────────────────────────────────────────────────
+# Configuracoes
 RSS_URL   = "https://www.contabeis.com.br/rss/noticias/"
 OUT_DIR   = "_content/noticias"
-THUMB_DEFAULT = "📰"
+THUMB_DEFAULT = "\U0001f4f0"
 
-# Mapeamento de categorias RSS → tags do site
 CATEGORY_MAP = {
-    "legislação":  "aviso",
     "legislacao":  "aviso",
     "fiscal":      "aviso",
-    "tributário":  "aviso",
     "tributario":  "aviso",
     "tutorial":    "tutorial",
     "artigo":      "tutorial",
     "evento":      "evento",
     "release":     "release",
-    "atualização": "release",
     "atualizacao": "release",
 }
 
 
-# ── Utilitários ────────────────────────────────────────────────────────────────
 def slugify(text):
-    """Converte um título em slug kebab-case sem acentos."""
     replacements = {
-        'á':'a','à':'a','ã':'a','â':'a','ä':'a',
-        'é':'e','è':'e','ê':'e','ë':'e',
-        'í':'i','ì':'i','î':'i','ï':'i',
-        'ó':'o','ò':'o','õ':'o','ô':'o','ö':'o',
-        'ú':'u','ù':'u','û':'u','ü':'u',
-        'ç':'c','ñ':'n',
-        'Á':'a','À':'a','Ã':'a','Â':'a','Ä':'a',
-        'É':'e','È':'e','Ê':'e','Ë':'e',
-        'Í':'i','Ì':'i','Î':'i','Ï':'i',
-        'Ó':'o','Ò':'o','Õ':'o','Ô':'o','Ö':'o',
-        'Ú':'u','Ù':'u','Û':'u','Ü':'u',
-        'Ç':'c','Ñ':'n',
+        'a':['a','a','a','a','a'],'e':['e','e','e','e'],'i':['i','i','i','i'],
+        'o':['o','o','o','o','o'],'u':['u','u','u','u'],'c':['c'],'n':['n'],
     }
-    for src, dst in replacements.items():
-        text = text.replace(src, dst)
+    import unicodedata
+    text = unicodedata.normalize('NFD', text)
+    text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')
     text = text.lower()
     text = re.sub(r'[^a-z0-9\s-]', '', text)
     text = re.sub(r'[\s_]+', '-', text)
     text = re.sub(r'-+', '-', text).strip('-')
-    return text[:80]  # limita tamanho do slug
+    return text[:80]
 
 
 def strip_html(raw):
-    """Remove tags HTML e decodifica entidades."""
     text = re.sub(r'<[^>]+>', '', raw or '')
     text = html.unescape(text)
     text = re.sub(r'\s+', ' ', text).strip()
@@ -81,31 +65,29 @@ def strip_html(raw):
 
 
 def guess_tag(categories):
-    """Infere a tag do site a partir das categorias do RSS."""
+    import unicodedata
     for cat in categories:
         key = cat.lower().strip()
-        if key in CATEGORY_MAP:
-            return CATEGORY_MAP[key]
+        key_norm = ''.join(c for c in unicodedata.normalize('NFD', key) if unicodedata.category(c) != 'Mn')
         for k, v in CATEGORY_MAP.items():
-            if k in key:
+            if k in key_norm:
                 return v
-    return "aviso"  # padrão para notícias fiscais/contábeis
+    return "aviso"
 
 
 def truncate(text, max_chars=220):
     if len(text) <= max_chars:
         return text
-    return text[:max_chars].rsplit(' ', 1)[0] + '…'
+    return text[:max_chars].rsplit(' ', 1)[0] + '...'
 
 
 def existing_slugs():
-    """Retorna o conjunto de slugs já presentes em _content/noticias/."""
     slugs = set()
     if not os.path.isdir(OUT_DIR):
         return slugs
     for f in os.listdir(OUT_DIR):
         if f.endswith('.md'):
-            slugs.add(f[:-3])  # remove .md
+            slugs.add(f[:-3])
     return slugs
 
 
@@ -118,33 +100,42 @@ def fetch_rss():
         return resp.read()
 
 
-def extract_image(item, desc_raw):
-    """Extrai a URL da imagem do item RSS.
+IMG_RE = re.compile(r'\.(jpg|jpeg|png|gif|webp|avif)(\?|$|#)', re.IGNORECASE)
 
-    Tenta, em ordem:
-      1. Qualquer child element que tenha atributo 'url' com extensão de imagem
-         (cobre media:content, enclosure, e qualquer variante de namespace)
-      2. Primeiro <img src="..."> dentro do HTML da <description>
-      3. Fallback: emoji padrão
-    """
-    IMG_EXTS = ('.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif')
 
-    # 1. Itera TODOS os filhos do item procurando atributo url com imagem
+def _is_image_url(url):
+    return bool(url.startswith('http') and IMG_RE.search(url))
+
+
+def extract_image(item, desc_raw, content_enc_text=''):
+    # Debug: mostra desc_raw para diagnostico
+    if desc_raw:
+        print("  [dbg] desc_raw[:200]: " + repr(desc_raw[:200]))
+
+    # 1. Itera TODOS os filhos procurando atributo url com imagem
     for el in item.iter():
         url = el.get('url', '').strip()
-        if url.startswith('http') and any(url.lower().endswith(ext) for ext in IMG_EXTS):
-            print(f"  [img] encontrada via element '{el.tag}': {url[:60]}")
+        if _is_image_url(url):
+            print("  [img] via element '" + el.tag + "': " + url[:80])
             return url
 
-    # 2. <img src="..."> no HTML da description (CDATA)
-    img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', desc_raw or '', re.IGNORECASE)
-    if img_match:
-        url = img_match.group(1).strip()
+    # 2. <img src="..."> no HTML da description e content:encoded
+    for html_src in (desc_raw or '', content_enc_text or ''):
+        img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', html_src, re.IGNORECASE)
+        if img_match:
+            url = img_match.group(1).strip()
+            if _is_image_url(url):
+                print("  [img] via <img> no HTML: " + url[:80])
+                return url
+
+    # 3. Qualquer atributo url sem checar extensao
+    for el in item.iter():
+        url = el.get('url', '').strip()
         if url.startswith('http'):
-            print(f"  [img] encontrada via <img> na description: {url[:60]}")
+            print("  [img] via element '" + el.tag + "' (sem ext): " + url[:80])
             return url
 
-    print(f"  [img] nenhuma imagem encontrada, usando emoji")
+    print("  [img] nenhuma imagem encontrada, usando emoji")
     return THUMB_DEFAULT
 
 
@@ -160,15 +151,15 @@ def parse_items(xml_bytes):
         pub_date    = item.findtext('pubDate') or ''
         categories  = [c.text.strip() for c in item.findall('category') if c.text]
 
-        # content:encoded como fallback de descrição mais longa
         content_enc = item.find('content:encoded', ns)
+        content_enc_text = ''
         if content_enc is not None and content_enc.text:
-            long_desc = strip_html(content_enc.text)
+            content_enc_text = content_enc.text
+            long_desc = strip_html(content_enc_text)
             if len(long_desc) > len(description):
                 description = long_desc
 
-        # Extrai imagem
-        thumb = extract_image(item, desc_raw)
+        thumb = extract_image(item, desc_raw, content_enc_text)
 
         if not title or not link:
             continue
@@ -191,42 +182,94 @@ def parse_items(xml_bytes):
 
 
 def create_md(item, slug):
-    """Gera o conteúdo do arquivo Markdown para uma notícia."""
     date_iso    = item['date'].strftime('%Y-%m-%d')
     tag         = guess_tag(item['categories'])
     title_esc   = item['title'].replace('"', '\\"')
     summary_esc = item['summary'].replace('"', '\\"')
     thumb       = item.get('thumb', THUMB_DEFAULT)
 
-    # thumb: URL → string entre aspas; emoji → sem aspas
     if thumb.startswith('http'):
-        thumb_yaml = f'"{thumb}"'
+        thumb_yaml = '"' + thumb + '"'
     else:
         thumb_yaml = thumb
 
-    body = f"""---
-layout: noticia.njk
-title: "{title_esc}"
-date: {date_iso}
-tag: {tag}
-summary: "{summary_esc}"
-thumb: {thumb_yaml}
-source_url: "{item['link']}"
-permalink: /noticias/{slug}/index.html
----
-
-> *Fonte: [Contabeis.com.br]({item['link']})*
-
-{item['summary']}
-
-[**Leia o artigo completo no Contabeis →**]({item['link']})
-"""
-    return body
+    lines = [
+        '---',
+        'layout: noticia.njk',
+        'title: "' + title_esc + '"',
+        'date: ' + date_iso,
+        'tag: ' + tag,
+        'summary: "' + summary_esc + '"',
+        'thumb: ' + thumb_yaml,
+        'source_url: "' + item['link'] + '"',
+        'permalink: /noticias/' + slug + '/index.html',
+        '---',
+        '',
+        '> *Fonte: [Contabeis.com.br](' + item['link'] + ')*',
+        '',
+        item['summary'],
+        '',
+        '[**Leia o artigo completo no Contabeis ->**](' + item['link'] + ')',
+        '',
+    ]
+    return '\n'.join(lines)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Importar notícias do Contabeis RSS")
-    parser.add_argument('--max',   type=int, default=20,    help='Máximo de artigos (padrão: 20)')
-    parser.add_argument('--days',  type=int, default=60,    help='Ignorar artigos mais antigos que N dias (padrão: 60)')
+    parser = argparse.ArgumentParser(description="Importar noticias do Contabeis RSS")
+    parser.add_argument('--max',   type=int, default=20,    help='Maximo de artigos (padrao: 20)')
+    parser.add_argument('--days',  type=int, default=60,    help='Ignorar artigos mais antigos que N dias (padrao: 60)')
     parser.add_argument('--reset', action='store_true',     help='Apaga todos os .md existentes antes de importar')
-    args = parser
+    args = parser.parse_args()
+
+    os.makedirs(OUT_DIR, exist_ok=True)
+
+    if args.reset:
+        removed = 0
+        for f in os.listdir(OUT_DIR):
+            if f.endswith('.md'):
+                os.remove(os.path.join(OUT_DIR, f))
+                removed += 1
+        print("--reset: " + str(removed) + " arquivo(s) removido(s) de " + OUT_DIR)
+
+    print("Buscando RSS: " + RSS_URL)
+    try:
+        xml_bytes = fetch_rss()
+    except Exception as e:
+        print("ERRO ao buscar RSS: " + str(e), file=sys.stderr)
+        sys.exit(1)
+
+    print("RSS obtido (" + str(len(xml_bytes)) + " bytes). Processando itens...")
+    items = parse_items(xml_bytes)
+    print("Total de itens no RSS: " + str(len(items)))
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=args.days)
+    items = [i for i in items if i['date'] >= cutoff]
+    print("Itens dentro de " + str(args.days) + " dias: " + str(len(items)))
+
+    slugs_ok = existing_slugs()
+    created = 0
+    skipped = 0
+
+    for item in items:
+        if created >= args.max:
+            break
+        slug = slugify(item['title'])
+        if not slug:
+            continue
+        if slug in slugs_ok:
+            skipped += 1
+            continue
+        path = os.path.join(OUT_DIR, slug + '.md')
+        content = create_md(item, slug)
+        with open(path, 'w', encoding='utf-8') as fh:
+            fh.write(content)
+        print("  [+] " + slug + ".md  (thumb: " + str(item['thumb'])[:60] + ")")
+        slugs_ok.add(slug)
+        created += 1
+
+    print("\nConcluido: " + str(created) + " criado(s), " + str(skipped) + " ignorado(s) (ja existiam).")
+
+
+if __name__ == '__main__':
+    main()
