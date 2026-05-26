@@ -1,27 +1,14 @@
-# =============================================================================
-# Workflow: Importar Notícias do Contabeis.com.br
-# -----------------------------------------------------------------------------
-# Roda automaticamente todo dia às 07:00 (horário de Brasília = 10:00 UTC).
-# Também pode ser disparado manualmente via "Run workflow" no GitHub Actions.
-#
-# O que faz:
-#   1. Busca o RSS https://www.contabeis.com.br/rss/noticias/
-#   2. Cria arquivos .md novos em _content/noticias/ (ignora os já existentes)
-#   3. Commita e faz push — o Cloudflare Pages reconstrói automaticamente
-# =============================================================================
-
-name: Importar Notícias Contabeis
+name: Importar Noticias Contabeis
 
 on:
   schedule:
-    # 10:00 UTC = 07:00 Brasília (horário de verão) / 07:00 BRT
+    # 10:00 UTC = 07:00 Brasilia
     - cron: '0 10 * * *'
 
-  # Permite disparar manualmente pelo GitHub → Actions → Run workflow
   workflow_dispatch:
     inputs:
       max_articles:
-        description: 'Número máximo de artigos a importar'
+        description: 'Maximo de artigos a importar'
         required: false
         default: '20'
       days_back:
@@ -29,7 +16,7 @@ on:
         required: false
         default: '60'
       reset:
-        description: 'Apagar e reimportar TODOS os artigos (use para corrigir imagens)'
+        description: 'Apagar e reimportar TODOS (true = sim, false = nao)'
         required: false
         default: 'false'
         type: choice
@@ -38,7 +25,7 @@ on:
           - 'true'
 
 permissions:
-  contents: write   # necessário para commitar e pushar
+  contents: write
 
 jobs:
   import:
@@ -46,7 +33,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Checkout do repositório
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
@@ -56,23 +43,35 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Executar script de importação
+      - name: Importar noticias do RSS
         run: |
-          MAX="${{ github.event.inputs.max_articles || '20' }}"
-          DAYS="${{ github.event.inputs.days_back || '60' }}"
-          RESET="${{ github.event.inputs.reset || 'false' }}"
+          MAX=${{ github.event.inputs.max_articles || 20 }}
+          DAYS=${{ github.event.inputs.days_back || 60 }}
+          RESET=${{ github.event.inputs.reset || 'false' }}
           RESET_FLAG=""
-          if [ "$RESET" = "true" ]; then RESET_FLAG="--reset"; fi
+          if [ "$RESET" = "true" ]; then
+            RESET_FLAG="--reset"
+          fi
           python scripts/import-noticias.py --max "$MAX" --days "$DAYS" $RESET_FLAG
 
-      - name: Verificar se há arquivos novos ou alterados
+      - name: Verificar mudancas
         id: check_changes
         run: |
           git add -A _content/noticias/
           if git diff --staged --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Nenhuma notícia nova encontrada."
+            echo "Nenhuma noticia nova."
           else
             COUNT=$(git diff --staged --name-only | wc -l)
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Arquivo(s) alterado(s): $CO
+            echo "Noticias novas: $COUNT"
+          fi
+
+      - name: Commitar e publicar
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
+          git commit -m "chore: noticias importadas do Contabeis ($DATE)"
+          git push
