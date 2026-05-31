@@ -5,10 +5,13 @@
   "private": true,
   "scripts": {
     "dev": "eleventy --serve --port=8080",
-    "build": "eleventy"
+    "build": "eleventy",
+    "deploy": "npm run build && wrangler deploy",
+    "preview": "npm run build && wrangler dev"
   },
   "devDependencies": {
-    "@11ty/eleventy": "^3.1.0"
+    "@11ty/eleventy": "^3.1.0",
+    "wrangler": "^4.95.0"
   },
   "overrides": {
     "please-upgrade-node": "3.2.0"
